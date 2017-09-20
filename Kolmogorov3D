@@ -1,0 +1,54 @@
+# Вариация параметров в системе Колмогорова
+# График строится как поверхность, зависящая от двух параметров
+
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+from matplotlib.ticker import LinearLocator, FormatStrFormatter
+
+fig = plt.figure()
+ax = fig.gca(projection='3d')
+
+# Make data.
+X = np.arange(1, 100, 1)
+Y = np.arange(1, 100, 1)
+X, Y = np.meshgrid(X, Y)
+R = np.sqrt(X**2 + Y**2)
+Z = np.sin(R)
+
+
+for nn in range(1, 99):
+    for mm in range(1, 99):
+        λ01=mm*1.0 * 10**-5
+        λ02=mm*2.0 * 10**-5
+        λ10=nn*2.0 * 10**-5
+        λ13=mm*2.0 * 10**-5
+        λ20=mm*3.0 * 10**-5
+        λ23=nn*1.0 * 10**-5
+        λ31=nn*3.0 * 10**-5
+        λ32=nn*2.0 * 10**-5
+        D=np.array([
+                [-(λ01+λ02), λ10, λ20, 0],				# p′0=λ10p1+λ20p2−(λ01+λ02)p0
+                [λ01, -(λ10+λ13), 0, λ31],				# p′1=λ01p0+λ31p3−(λ10+λ13)p1
+                [λ02, 0, -(λ20+λ23), λ32], 				# p′2=λ02p0+λ32p3−(λ20+λ23)p2
+                [0, λ13, λ23, -(λ31+λ32)],				# p′3=λ13p1+λ23p2−(λ31+λ32)p3
+        ]);
+        result = calc_system_odeint(tmax=1.5*24*3600)
+        probap = result[-1,1] + result[-1,2] + result[-1,3]
+        Z[nn,mm] = probap
+
+
+
+
+# Plot the surface.
+surf = ax.plot_surface(X, Y, Z, cmap=cm.coolwarm,
+                       linewidth=0, antialiased=False)
+
+# Customize the z axis.
+ax.set_zlim(-1.01, 1.01)
+ax.zaxis.set_major_locator(LinearLocator(10))
+ax.zaxis.set_major_formatter(FormatStrFormatter('%.02f'))
+
+# Add a color bar which maps values to colors.
+fig.colorbar(surf, shrink=0.5, aspect=5)
+
+plt.show()
